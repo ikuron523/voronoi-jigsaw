@@ -16,8 +16,14 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [pieceStates, setPieceStates] = useState(pieces);
   const containerRef = useRef<HTMLDivElement>(null);
+  const snapSoundRef = useRef<HTMLAudioElement | null>(null);
+  const fanfareSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // ユーザーが 'public' フォルダに配置した音源を読み込む
+    snapSoundRef.current = new Audio('/snap.mp3');
+    fanfareSoundRef.current = new Audio('/fanfare.mp3');
+    
     const handleResize = () => {
       if (containerRef.current) {
         setDimensions({
@@ -42,6 +48,29 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
     const dist = Math.sqrt(x * x + y * y);
     
     if (dist < SNAP_RADIUS) {
+      // これが最後のピースかどうか判定（現在未配置のピースが1つだけなら、これが最後）
+      const isLastPiece = pieceStates.filter(p => !p.isPlaced).length === 1;
+
+      // スナップ時の効果音を再生
+      if (snapSoundRef.current) {
+        snapSoundRef.current.currentTime = 0; // 連続で再生できるように巻き戻す
+        
+        if (isLastPiece && fanfareSoundRef.current) {
+          // 最後のピースの場合は、snap音が終わった後にファンファーレを再生
+          snapSoundRef.current.onended = () => {
+            fanfareSoundRef.current!.currentTime = 0;
+            fanfareSoundRef.current!.play().catch(e => console.warn('Fanfare playback failed:', e));
+            // イベントリスナーを解除しておく
+            snapSoundRef.current!.onended = null;
+          };
+        } else {
+          // それ以外の場合はイベントリスナーを解除
+          snapSoundRef.current.onended = null;
+        }
+
+        snapSoundRef.current.play().catch(e => console.warn('Audio playback failed:', e));
+      }
+
       node.position({ x: 0, y: 0 });
       node.draggable(false);
       node.moveToBottom();
