@@ -121,17 +121,33 @@ function App() {
         </div>
       ) : (
         <div className="game-container">
-          <div className="glass-panel game-header">
-            <div>
+          <div className="glass-panel game-header" style={{ position: 'relative' }}>
+            <div style={{ flex: 1 }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Voronoi Jigsaw</h2>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                 Pieces placed: {pieces.filter(p => p.isPlaced).length} / {pieces.length}
               </p>
             </div>
-            <button className="btn" onClick={resetGame}>
-              <RotateCcw size={18} />
-              Quit
-            </button>
+
+            {isCleared && (
+              <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center' }}>
+                <h2 style={{ color: '#4ade80', margin: 0, fontSize: '1.75rem', fontWeight: 800 }}>Clear! 🎉</h2>
+              </div>
+            )}
+
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              {isCleared ? (
+                <button className="btn" onClick={resetGame}>
+                  <RotateCcw size={18} />
+                  Play Again
+                </button>
+              ) : (
+                <button className="btn" onClick={resetGame}>
+                  <RotateCcw size={18} />
+                  Quit
+                </button>
+              )}
+            </div>
           </div>
           
           <div className="canvas-container">
@@ -141,17 +157,6 @@ function App() {
               onPiecePlaced={handlePiecePlaced} 
             />
           </div>
-
-          {isCleared && (
-            <div className="clear-overlay">
-              <div className="glass-panel clear-message">
-                <h2 className="clear-title">Clear!</h2>
-                <button className="btn" style={{ margin: '0 auto' }} onClick={resetGame}>
-                  Play Again
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </>

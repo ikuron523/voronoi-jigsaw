@@ -20,10 +20,10 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
   const fanfareSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // ユーザーが 'public' フォルダに配置した音源を読み込む
+    // Load audio files placed in the 'public' folder
     snapSoundRef.current = new Audio('/snap.mp3');
     fanfareSoundRef.current = new Audio('/fanfare.mp3');
-    
+
     const handleResize = () => {
       if (containerRef.current) {
         setDimensions({
@@ -44,27 +44,27 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
     const node = e.target;
     const x = node.x();
     const y = node.y();
-    
+
     const dist = Math.sqrt(x * x + y * y);
-    
+
     if (dist < SNAP_RADIUS) {
-      // これが最後のピースかどうか判定（現在未配置のピースが1つだけなら、これが最後）
+      // Check if this is the last piece (if only one unplaced piece remains, this is it)
       const isLastPiece = pieceStates.filter(p => !p.isPlaced).length === 1;
 
-      // スナップ時の効果音を再生
+      // Play the snap sound effect
       if (snapSoundRef.current) {
-        snapSoundRef.current.currentTime = 0; // 連続で再生できるように巻き戻す
-        
+        snapSoundRef.current.currentTime = 0; // Rewind to allow consecutive playback
+
         if (isLastPiece && fanfareSoundRef.current) {
-          // 最後のピースの場合は、snap音が終わった後にファンファーレを再生
+          // If it's the last piece, play the fanfare after the snap sound finishes
           snapSoundRef.current.onended = () => {
             fanfareSoundRef.current!.currentTime = 0;
             fanfareSoundRef.current!.play().catch(e => console.warn('Fanfare playback failed:', e));
-            // イベントリスナーを解除しておく
+            // Remove the event listener
             snapSoundRef.current!.onended = null;
           };
         } else {
-          // それ以外の場合はイベントリスナーを解除
+          // Otherwise, remove the event listener
           snapSoundRef.current.onended = null;
         }
 
@@ -74,13 +74,13 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
       node.position({ x: 0, y: 0 });
       node.draggable(false);
       node.moveToBottom();
-      
-      setPieceStates(prev => 
+
+      setPieceStates(prev =>
         prev.map(p => p.id === id ? { ...p, isPlaced: true, currentPos: { x: 0, y: 0 } } : p)
       );
       onPiecePlaced(id);
     } else {
-      setPieceStates(prev => 
+      setPieceStates(prev =>
         prev.map(p => p.id === id ? { ...p, currentPos: { x, y } } : p)
       );
     }
@@ -91,6 +91,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
     node.moveToTop();
   };
 
+  const isCleared = pieceStates.length > 0 && pieceStates.every(p => p.isPlaced);
+
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
       <Stage width={dimensions.width} height={dimensions.height}>
@@ -100,17 +102,18 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
             y={0}
             width={image.width}
             height={image.height}
-            fill="rgba(0,0,0,0.3)"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth={2}
+            fill={isCleared ? "transparent" : "rgba(0,0,0,0.1)"}
+            stroke={isCleared ? "transparent" : "rgba(255,255,255,0.2)"}
+            strokeWidth={isCleared ? 0 : 2}
             shadowColor="black"
-            shadowBlur={10}
-            shadowOpacity={0.5}
+            shadowBlur={isCleared ? 0 : 10}
+            shadowOpacity={isCleared ? 0 : 0.8}
+            shadowOffset={isCleared ? { x: 0, y: 0 } : { x: 4, y: 4 }}
           />
-          
+
           {pieceStates.map(piece => {
             const pos = (piece as any).currentPos || piece.initialPos;
-            
+
             return (
               <Line
                 key={piece.id}
@@ -120,15 +123,15 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
                 closed={true}
                 fillPatternImage={image}
                 fillPatternRepeat="no-repeat"
-                stroke={piece.isPlaced ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.8)"}
-                strokeWidth={piece.isPlaced ? 1 : 2}
+                stroke={piece.isPlaced ? (isCleared ? "transparent" : "rgba(255,255,255,0.1)") : "rgba(255,255,255,0.8)"}
+                strokeWidth={piece.isPlaced ? (isCleared ? 0 : 1) : 2}
                 draggable={!piece.isPlaced}
                 onDragStart={handleDragStart}
                 onDragEnd={(e) => handleDragEnd(e, piece.id)}
                 shadowColor="black"
-                shadowBlur={piece.isPlaced ? 0 : 5}
-                shadowOpacity={piece.isPlaced ? 0 : 0.5}
-                shadowOffset={piece.isPlaced ? {x:0, y:0} : {x:2, y:2}}
+                shadowBlur={piece.isPlaced ? 0 : 10}
+                shadowOpacity={piece.isPlaced ? 0 : 0.8}
+                shadowOffset={piece.isPlaced ? { x: 0, y: 0 } : { x: 4, y: 4 }}
               />
             );
           })}
