@@ -21,8 +21,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
 
   useEffect(() => {
     // Load audio files placed in the 'public' folder
-    snapSoundRef.current = new Audio('/snap.mp3');
-    fanfareSoundRef.current = new Audio('/fanfare.mp3');
+    snapSoundRef.current = new Audio('./snap.mp3');
+    fanfareSoundRef.current = new Audio('./fanfare.mp3');
 
     const handleResize = () => {
       if (containerRef.current) {
