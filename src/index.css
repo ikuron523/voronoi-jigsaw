@@ -184,3 +184,27 @@ body {
     opacity: 1;
   }
 }
+
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.modal-content {
+  padding: 2rem 3rem;
+  max-width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}

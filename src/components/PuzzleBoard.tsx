@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Stage, Layer, Line, Rect } from 'react-konva';
 import type { PieceData } from '../utils/voronoi';
 import Konva from 'konva';
+
+export interface PuzzleBoardHandle {
+  resetView: () => void;
+}
 
 interface PuzzleBoardProps {
   image: HTMLImageElement;
@@ -12,12 +16,24 @@ interface PuzzleBoardProps {
 // User requested 15-20px snap radius
 const SNAP_RADIUS = 20;
 
-const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced }) => {
+const PuzzleBoard = forwardRef<PuzzleBoardHandle, PuzzleBoardProps>(({ image, pieces, onPiecePlaced }, ref) => {
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [pieceStates, setPieceStates] = useState(pieces);
   const containerRef = useRef<HTMLDivElement>(null);
   const snapSoundRef = useRef<HTMLAudioElement | null>(null);
   const fanfareSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Zoom & Pan state
+  const [stageScale, setStageScale] = useState(1);
+  const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 });
+  const lastDist = useRef<number>(0);
+
+  useImperativeHandle(ref, () => ({
+    resetView: () => {
+      setStageScale(1);
+      setStagePosition({ x: 0, y: 0 });
+    }
+  }));
 
   useEffect(() => {
     // Load audio files placed in the 'public' folder
@@ -88,14 +104,117 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
 
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target;
-    node.moveToTop();
+    // Don't move to top if dragging the stage
+    if (node.getType() !== 'Stage') {
+      node.moveToTop();
+    }
+  };
+
+  const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
+    e.evt.preventDefault();
+    const scaleBy = 1.1;
+    const stage = e.target.getStage();
+    if (!stage) return;
+    const oldScale = stage.scaleX();
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
+    let direction = e.evt.deltaY > 0 ? -1 : 1;
+    if (e.evt.ctrlKey) {
+      direction = -direction;
+    }
+    const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    if (newScale < 0.1 || newScale > 10) return;
+
+    setStageScale(newScale);
+    setStagePosition({
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    });
+  };
+
+  const getDistance = (p1: Touch, p2: Touch) => {
+    return Math.sqrt(Math.pow(p2.clientX - p1.clientX, 2) + Math.pow(p2.clientY - p1.clientY, 2));
+  };
+
+  const handleTouchMove = (e: Konva.KonvaEventObject<TouchEvent>) => {
+    e.evt.preventDefault();
+    const touch1 = e.evt.touches[0];
+    const touch2 = e.evt.touches[1];
+    const stage = e.target.getStage();
+    if (!stage || !touch1 || !touch2) return;
+
+    if (stage.isDragging()) {
+      stage.stopDrag();
+    }
+
+    const dist = getDistance(touch1, touch2);
+    if (!lastDist.current) {
+      lastDist.current = dist;
+    }
+
+    const center = {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const pointer = {
+      x: center.x - rect.left,
+      y: center.y - rect.top,
+    };
+
+    const oldScale = stage.scaleX();
+    const scaleBy = dist / lastDist.current;
+    const newScale = oldScale * scaleBy;
+    if (newScale < 0.1 || newScale > 10) return;
+
+    const mousePointTo = {
+      x: (pointer.x - stage.x()) / oldScale,
+      y: (pointer.y - stage.y()) / oldScale,
+    };
+
+    setStageScale(newScale);
+    setStagePosition({
+      x: pointer.x - mousePointTo.x * newScale,
+      y: pointer.y - mousePointTo.y * newScale,
+    });
+
+    lastDist.current = dist;
+  };
+
+  const handleTouchEnd = () => {
+    lastDist.current = 0;
   };
 
   const isCleared = pieceStates.length > 0 && pieceStates.every(p => p.isPlaced);
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
-      <Stage width={dimensions.width} height={dimensions.height}>
+      <Stage 
+        width={dimensions.width} 
+        height={dimensions.height}
+        draggable
+        scaleX={stageScale}
+        scaleY={stageScale}
+        x={stagePosition.x}
+        y={stagePosition.y}
+        onWheel={handleWheel}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onDragEnd={(e) => {
+          if (e.target.getType() === 'Stage') {
+            setStagePosition({ x: e.target.x(), y: e.target.y() });
+          }
+        }}
+      >
         <Layer x={boardX} y={boardY}>
           <Rect
             x={0}
@@ -139,6 +258,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, pieces, onPiecePlaced 
       </Stage>
     </div>
   );
-};
+});
 
 export default PuzzleBoard;

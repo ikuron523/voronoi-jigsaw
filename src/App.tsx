@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, Play, RotateCcw } from 'lucide-react';
+import React, { useState, useCallback, useRef } from 'react';
+import { Upload, Play, RotateCcw, Maximize, HelpCircle } from 'lucide-react';
 import { loadImage, resizeImage } from './utils/imageUtils';
 import { generatePuzzlePieces } from './utils/voronoi';
 import type { PieceData } from './utils/voronoi';
-import PuzzleBoard from './components/PuzzleBoard';
+import PuzzleBoard, { type PuzzleBoardHandle } from './components/PuzzleBoard';
 
 const PIECE_OPTIONS = [
   { label: 'Easy (10 pieces)', value: 10 },
@@ -18,6 +18,8 @@ function App() {
   const [pieceCount, setPieceCount] = useState<number>(30);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isCleared, setIsCleared] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const boardRef = useRef<PuzzleBoardHandle>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,7 +137,23 @@ function App() {
               </div>
             )}
 
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <button 
+                className="btn" 
+                style={{ background: 'transparent', border: 'none', padding: '0.5rem', color: 'var(--text-secondary)' }} 
+                onClick={() => setShowHelp(true)}
+                title="Help"
+              >
+                <HelpCircle size={24} />
+              </button>
+              <button 
+                className="btn" 
+                style={{ background: 'var(--panel-bg)', border: '1px solid var(--panel-border)' }} 
+                onClick={() => boardRef.current?.resetView()}
+              >
+                <Maximize size={18} />
+                Reset View
+              </button>
               {isCleared ? (
                 <button className="btn" onClick={resetGame}>
                   <RotateCcw size={18} />
@@ -152,11 +170,27 @@ function App() {
           
           <div className="canvas-container">
             <PuzzleBoard 
+              ref={boardRef}
               image={image!} 
               pieces={pieces} 
               onPiecePlaced={handlePiecePlaced} 
             />
           </div>
+
+          {showHelp && (
+            <div className="modal-overlay" onClick={() => setShowHelp(false)}>
+              <div className="glass-panel modal-content" onClick={e => e.stopPropagation()}>
+                <h3 style={{ fontSize: '1.5rem', margin: 0 }}>Controls</h3>
+                <div style={{ textAlign: 'left', lineHeight: '1.8', color: 'var(--text-primary)' }}>
+                  <p>🖱️ <strong>Mouse:</strong> Scroll to zoom, drag background to pan</p>
+                  <p>👆 <strong>Touch:</strong> Pinch to zoom, swipe background to pan</p>
+                </div>
+                <button className="btn" style={{ margin: '1rem auto 0' }} onClick={() => setShowHelp(false)}>
+                  Got it!
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
