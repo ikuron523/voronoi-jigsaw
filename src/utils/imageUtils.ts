@@ -12,6 +12,15 @@ export const loadImage = (file: File): Promise<HTMLImageElement> => {
   });
 };
 
+export const loadImageFromUrl = (url: string): Promise<HTMLImageElement> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+};
+
 export const resizeImage = (img: HTMLImageElement, maxWidth: number, maxHeight: number): HTMLImageElement => {
   let width = img.width;
   let height = img.height;

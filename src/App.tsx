@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload, Play, RotateCcw, Maximize, HelpCircle } from 'lucide-react';
-import { loadImage, resizeImage } from './utils/imageUtils';
+import { loadImage, loadImageFromUrl, resizeImage } from './utils/imageUtils';
 import { generatePuzzlePieces } from './utils/voronoi';
 import type { PieceData } from './utils/voronoi';
 import PuzzleBoard, { type PuzzleBoardHandle } from './components/PuzzleBoard';
@@ -11,6 +11,8 @@ const PIECE_OPTIONS = [
   { label: 'Hard (60 pieces)', value: 60 },
   { label: 'Expert (100 pieces)', value: 100 },
 ];
+
+const BUILT_IN_IMAGES = ['./sample1.jpg', './sample2.jpg', './sample3.jpg', './sample4.jpg', './sample5.jpg'];
 
 function App() {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -35,6 +37,20 @@ function App() {
     } catch (err) {
       console.error('Failed to load image', err);
       alert('Failed to load image.');
+    }
+  };
+
+  const handleSampleSelect = async (url: string) => {
+    try {
+      const img = await loadImageFromUrl(url);
+      const resized = resizeImage(img, 800, 800);
+      
+      resized.onload = () => {
+         setImage(resized);
+      }
+    } catch (err) {
+      console.error('Failed to load sample image', err);
+      alert('Failed to load sample image.');
     }
   };
 
@@ -87,12 +103,26 @@ function App() {
                   </button>
                 </div>
               ) : (
-                <div className="file-input-wrapper">
-                  <button className="btn">
-                    <Upload size={20} />
-                    Choose Image
-                  </button>
-                  <input type="file" accept="image/*" onChange={handleImageUpload} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div className="file-input-wrapper" style={{ marginBottom: '1rem' }}>
+                    <button className="btn">
+                      <Upload size={20} />
+                      Choose Image
+                    </button>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} />
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Or choose a sample:</div>
+                  <div className="sample-thumbnails">
+                    {BUILT_IN_IMAGES.map((url, index) => (
+                      <img 
+                        key={index} 
+                        src={url} 
+                        alt={`Sample ${index + 1}`} 
+                        className="sample-thumbnail"
+                        onClick={() => handleSampleSelect(url)}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

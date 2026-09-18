@@ -208,3 +208,25 @@ body {
   flex-direction: column;
   gap: 1.5rem;
 }
+
+.sample-thumbnails {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.sample-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.sample-thumbnail:hover {
+  transform: scale(1.1);
+  border-color: var(--accent);
+}
