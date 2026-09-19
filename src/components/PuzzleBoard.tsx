@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Stage, Layer, Line, Rect, Image as KonvaImage } from 'react-konva';
 import type { PieceData } from '../utils/voronoi';
 import Konva from 'konva';
