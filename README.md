@@ -1,32 +1,59 @@
-# React + TypeScript + Vite
+# Voronoi Jigsaw
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A beautiful, modern jigsaw puzzle game built with React and Konva, featuring organically shaped puzzle pieces generated using Voronoi diagrams.
 
-Currently, two official plugins are available:
+This puzzle game is a browser-based game that can be played on desktop or mobile devices.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🧩 Features
+- **Voronoi Puzzle Pieces:** Pieces are uniquely generated using Voronoi diagrams instead of traditional grid shapes.
+- **Custom Images:** Play with built-in sample images or upload any image from your device.
+- **Difficulty Levels:** Choose from Easy (10), Normal (30), Hard (60), or Expert (100) pieces.
+- **Responsive Controls:** Play comfortably on desktop or mobile with intuitive zoom and pan support.
+- **Hint System:** Stuck? Use the hint button to see the original image as a guide.
 
-## React Compiler
+## 🎮 How to Play
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Rules
+1. Select an image (upload one or choose a built-in sample) and a difficulty level.
+2. Click "Start Puzzle".
+3. Drag the scattered puzzle pieces onto the dark board in the center.
+4. When a piece is moved close to its correct position, it will automatically "snap" into place and lock.
+5. Snap all pieces into their correct positions to complete the puzzle!
 
-## Expanding the Oxlint configuration
+### Controls
+- **Drag Piece:** Click and drag a puzzle piece to move it.
+- **Zoom In/Out:** Use the mouse scroll wheel, or pinch in/out with two fingers on touch screens.
+- **Pan (Move View):** Click and drag the empty background to scroll around the workspace.
+- **Reset View:** Click the "Reset View" button in the top right to center the camera.
+- **Hint:** Click the "Hint" button to briefly display the completed image on the board.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 💻 Local Development
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+### Requirements
+- Node.js
+
+### Setup
+1. Clone this repository:
+   ```bash
+   git clone <your-repo-url>
+   cd jigsaw
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open the provided local URL (usually `http://localhost:5173/`) in your browser.
+
+### Build for Production
+To build the project for production deployment, run:
+```bash
+npm run build
 ```
+The optimized static files will be generated in the `dist` directory.
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### LICENSE
+This puzzle game is licensed under the terms of the MIT license. Please see the [LICENSE](LICENSE) file for more information.
