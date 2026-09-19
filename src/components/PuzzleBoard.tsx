@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { Stage, Layer, Line, Rect } from 'react-konva';
+import { Stage, Layer, Line, Rect, Image as KonvaImage } from 'react-konva';
 import type { PieceData } from '../utils/voronoi';
 import Konva from 'konva';
 
@@ -11,12 +11,13 @@ interface PuzzleBoardProps {
   image: HTMLImageElement;
   pieces: PieceData[];
   onPiecePlaced: (id: string) => void;
+  isHintActive: boolean;
 }
 
 // User requested 15-20px snap radius
 const SNAP_RADIUS = 20;
 
-const PuzzleBoard = forwardRef<PuzzleBoardHandle, PuzzleBoardProps>(({ image, pieces, onPiecePlaced }, ref) => {
+const PuzzleBoard = forwardRef<PuzzleBoardHandle, PuzzleBoardProps>(({ image, pieces, onPiecePlaced, isHintActive }, ref) => {
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [pieceStates, setPieceStates] = useState(pieces);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -112,7 +113,8 @@ const PuzzleBoard = forwardRef<PuzzleBoardHandle, PuzzleBoardProps>(({ image, pi
 
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
     e.evt.preventDefault();
-    const scaleBy = 1.1;
+    // Zoom speed changed from 1.1 (too fast) to 1.03
+    const scaleBy = 1.03;
     const stage = e.target.getStage();
     if (!stage) return;
     const oldScale = stage.scaleX();
@@ -198,8 +200,8 @@ const PuzzleBoard = forwardRef<PuzzleBoardHandle, PuzzleBoardProps>(({ image, pi
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
-      <Stage 
-        width={dimensions.width} 
+      <Stage
+        width={dimensions.width}
         height={dimensions.height}
         draggable
         scaleX={stageScale}
@@ -229,6 +231,18 @@ const PuzzleBoard = forwardRef<PuzzleBoardHandle, PuzzleBoardProps>(({ image, pi
             shadowOpacity={isCleared ? 0 : 0.8}
             shadowOffset={isCleared ? { x: 0, y: 0 } : { x: 4, y: 4 }}
           />
+
+          {isHintActive && (
+            <KonvaImage
+              image={image}
+              x={0}
+              y={0}
+              width={image.width}
+              height={image.height}
+              opacity={0.5}
+              listening={false}
+            />
+          )}
 
           {pieceStates.map(piece => {
             const pos = (piece as any).currentPos || piece.initialPos;

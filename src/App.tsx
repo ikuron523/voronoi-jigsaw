@@ -21,6 +21,8 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isCleared, setIsCleared] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [hintsRemaining, setHintsRemaining] = useState(0);
+  const [isHintActive, setIsHintActive] = useState(false);
   const boardRef = useRef<PuzzleBoardHandle>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,6 +66,8 @@ function App() {
     setPieces(newPieces);
     setIsPlaying(true);
     setIsCleared(false);
+    setHintsRemaining(Math.max(1, Math.floor(pieceCount / 10)));
+    setIsHintActive(false);
   };
 
   const resetGame = () => {
@@ -71,6 +75,17 @@ function App() {
     setIsCleared(false);
     setPieces([]);
     setImage(null);
+    setIsHintActive(false);
+  };
+
+  const handleHint = () => {
+    if (hintsRemaining > 0 && !isHintActive) {
+      setHintsRemaining(prev => prev - 1);
+      setIsHintActive(true);
+      setTimeout(() => {
+        setIsHintActive(false);
+      }, 3000);
+    }
   };
 
   const handlePiecePlaced = useCallback((id: string) => {
@@ -155,7 +170,19 @@ function App() {
         <div className="game-container">
           <div className="glass-panel game-header" style={{ position: 'relative' }}>
             <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Voronoi Jigsaw</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.25rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Voronoi Jigsaw</h2>
+                {!isCleared && (
+                  <button 
+                    className="btn" 
+                    style={{ padding: '0.25rem 0.75rem', fontSize: '0.875rem', height: 'fit-content' }} 
+                    onClick={handleHint}
+                    disabled={hintsRemaining <= 0 || isHintActive}
+                  >
+                    Hint: {hintsRemaining}
+                  </button>
+                )}
+              </div>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
                 Pieces placed: {pieces.filter(p => p.isPlaced).length} / {pieces.length}
               </p>
@@ -204,6 +231,7 @@ function App() {
               image={image!} 
               pieces={pieces} 
               onPiecePlaced={handlePiecePlaced} 
+              isHintActive={isHintActive}
             />
           </div>
 
